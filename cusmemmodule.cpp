@@ -25,19 +25,19 @@ static void* my_alloc(void *ctx, size_t size)
 		
 	if(size > 120)
     {
-        auto addr = (unsigned char *)malloc(size);
+        auto addr = (unsigned short *)malloc(size);
         std::cout << "malloc ( ): " << addr << std::endl;
         *addr = 0;
-        std::cout << "allocated (raw) (" << size << "): " << (addr + META_BLOC_SIZE) << std::endl;
-        return (void *) (addr + META_BLOC_SIZE);
+        std::cout << "allocated (raw) (" << size << "): " << (addr + META_BLOC_SIZE/2) << std::endl;
+        return (void *) (addr + META_BLOC_SIZE/2);
     }
 	else
 	{
 		printf("using pool with %d\n", size);
-		auto addr = (unsigned char*)pool.allocate(size);
+		auto addr = (unsigned short*)pool.allocate(size);
         *addr = size;
         std::cout << "allocated: " << addr << std::endl;
-        return (void *) (addr + META_BLOC_SIZE);
+        return (void *) (addr + META_BLOC_SIZE/2);
 	}
 
 }
@@ -46,20 +46,20 @@ static void* my_realloc(void *ctx, void *ptr, size_t new_size)
 {
     printf("my_realloc %d\n", new_size);
 
-    bool from_pool = *((unsigned char*)ptr - META_BLOC_SIZE) != 0;
+    bool from_pool = *((unsigned short*)ptr - META_BLOC_SIZE/2) != 0;
 
     if(!from_pool){
         std::cout << "real pool ! : " << ptr << std::endl;
         new_size += META_BLOC_SIZE;
 
-        std::cout << "realloc ( ): " << (unsigned char*)ptr - META_BLOC_SIZE << std::endl;
-        auto addr = (unsigned char *)realloc((unsigned char*)ptr - META_BLOC_SIZE, new_size);
+        std::cout << "realloc ( ): " << (unsigned short*)ptr - META_BLOC_SIZE/2 << std::endl;
+        auto addr = (unsigned short *)realloc((unsigned short*)ptr - META_BLOC_SIZE/2, new_size);
         *addr = 0;
-        return (void *) (addr + META_BLOC_SIZE);
+        return (void *) (addr + META_BLOC_SIZE/2);
     }
     else {
         auto addr = my_alloc(ctx, new_size);
-        memcpy(addr, ptr, *((unsigned char *) ptr - META_BLOC_SIZE));
+        memcpy(addr, ptr, *((unsigned short *) ptr - META_BLOC_SIZE/2));
 
         my_free(ctx, ptr);
 
@@ -85,14 +85,14 @@ static void* my_calloc(void *ctx, size_t nelem, size_t elsize)
 static void my_free(void *ctx, void *ptr)
 {
     printf("my_free\n");
-    bool from_pool = *((unsigned char*)ptr - META_BLOC_SIZE) != 0;
+    bool from_pool = *((unsigned short*)ptr - META_BLOC_SIZE/2) != 0;
 
     if (from_pool) {
         printf("Dallocate from pool\n");
-        std::cout << "freeing: " << (unsigned char *)ptr - META_BLOC_SIZE << " with size: " << *((unsigned char *) ptr - META_BLOC_SIZE) << std::endl;
-        pool.deallocate((unsigned char *) ptr - META_BLOC_SIZE, *((unsigned char *) ptr - META_BLOC_SIZE));
+        std::cout << "freeing: " << (unsigned short *)ptr - META_BLOC_SIZE/2 << " with size: " << *((unsigned short *) ptr - META_BLOC_SIZE/2) << std::endl;
+        pool.deallocate((unsigned short *) ptr - META_BLOC_SIZE/2, *((unsigned short *) ptr - META_BLOC_SIZE/2));
     } else {
-        free((unsigned char *) ptr - META_BLOC_SIZE);
+        free((unsigned short *) ptr - META_BLOC_SIZE/2);
     }
 }
 
